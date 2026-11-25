@@ -55,7 +55,7 @@ main{max-width:640px;margin:0 auto;padding:14px}
 .stat .sb{font-size:11px;font-weight:500;margin-top:3px;opacity:.85;line-height:1.35}
 .sumsec{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin:12px 0 2px}
 .s-rec{background:var(--greenbg);color:var(--green)}
-.s-dep{background:var(--bluebg);color:var(--blue)}
+.s-dep{background:var(--redbg);color:var(--red)}
 .s-exp{background:var(--amberbg);color:var(--amber)}
 .s-net{background:#f1f2f4;color:var(--ink)}
 h2{font-size:15px;font-weight:700;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}
@@ -64,7 +64,7 @@ h2 .sub{font-size:12px;color:var(--muted);font-weight:500}
 .act{border:none;border-radius:14px;padding:14px 6px;font-weight:700;font-size:13px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px}
 .act .ic{font-size:22px}
 .act.rec{background:var(--green);color:#fff}
-.act.dep{background:var(--blue);color:#fff}
+.act.dep{background:var(--red);color:#fff}
 .act.exp{background:#f59e0b;color:#fff}
 .tx{display:flex;align-items:center;gap:12px;padding:11px 0;border-top:1px solid var(--line)}
 .tx:first-child{border-top:none}
@@ -142,7 +142,7 @@ textarea.in{min-height:120px;font-size:12px;font-family:ui-monospace,monospace}
 <body>
 <header>
   <div class="hrow">
-    <div class="brandrow"><img src="icon-192.png" alt="" class="logoimg"><div class="logo">A.K Boss<small>Daily money ledger</small></div></div>
+    <div class="brandrow"><img src="logo.png" alt="" class="logoimg"><div class="logo">A.K Boss<small>Daily money ledger</small></div></div>
     <select id="partySel" aria-label="Account"></select>
   </div>
   <div class="clockrow"><div><div id="clkDate"></div><div id="sync">Loading…</div></div><div id="clkTime"></div></div>
@@ -450,7 +450,7 @@ async function initStore(){
 async function safe(p){ try{ await p; }catch(e){ toast("Couldn't save: "+(e&&e.code||"error")); } }
 
 /* ---------- rendering ---------- */
-const ICON={received:["💰","var(--greenbg)"],deposit:["💸","var(--bluebg)"],expected:["⏳","var(--amberbg)"]};
+const ICON={received:["💰","var(--greenbg)"],deposit:["💸","var(--redbg)"],expected:["⏳","var(--amberbg)"]};
 function txRow(t){
   const [ic,bg]=ICON[t.type];
   let title,sub,amt,cls;
@@ -460,7 +460,7 @@ function txRow(t){
     amt="+"+tk(t.net); cls="pos";
   }else if(t.type==="deposit"){
     title=payTitle(t);
-    sub=[payDetail(t), t.note].filter(Boolean).join(" · "); cls="";
+    sub=[payDetail(t), t.note].filter(Boolean).join(" · "); cls="neg";
     amt=tk(t.amount);
   }else{
     const got=t.status==="received";
@@ -548,13 +548,13 @@ function sumHTML(open,rec,dep,W){
     <div class="stat s-rec"><div class="k">Total Received</div><div class="v">${tk(tR)}</div><div class="sb">${esc(subR)}</div></div>
     <div class="stat s-dep"><div class="k">Total Paid</div><div class="v">${tk(tP)}</div><div class="sb">${esc(subP)}</div></div></div>`;
   h+=`<div class="sumsec">Received</div>`;
-  if(C.recPrev) h+=`<div class="row"><span>${esc(W.prevBal)} (with you)</span><b>${tk(C.recPrev)}</b></div>`;
-  h+=`<div class="row"><span>Received ${esc(W.this)}</span><b>${tk(rec)}</b></div>`;
+  if(C.recPrev) h+=`<div class="row"><span>${esc(W.prevBal)} (with you)</span><b class="pos">${tk(C.recPrev)}</b></div>`;
+  h+=`<div class="row"><span>Received ${esc(W.this)}</span><b class="pos">${tk(rec)}</b></div>`;
   h+=`<div class="row"><b>Total received</b><b class="pos">${tk(tR)}</b></div>`;
   h+=`<div class="sumsec">Paid</div>`;
-  if(C.paidPrev) h+=`<div class="row"><span>${esc(W.prevBal)} (${esc(party())} owes you)</span><b>${tk(C.paidPrev)}</b></div>`;
-  h+=`<div class="row"><span>Paid ${esc(W.this)}</span><b>${tk(dep)}</b></div>`;
-  h+=`<div class="row"><b>Total paid</b><b style="color:var(--blue)">${tk(tP)}</b></div>`;
+  if(C.paidPrev) h+=`<div class="row"><span>${esc(W.prevBal)} (${esc(party())} owes you)</span><b class="neg">${tk(C.paidPrev)}</b></div>`;
+  h+=`<div class="row"><span>Paid ${esc(W.this)}</span><b class="neg">${tk(dep)}</b></div>`;
+  h+=`<div class="row"><b>Total paid</b><b class="neg">${tk(tP)}</b></div>`;
   h+=`<div class="row" style="font-size:16px;border-top:2px solid var(--line);margin-top:6px;padding-top:10px"><b>= Balance (Paid − Received)</b><b class="${dueCls(close)}">${sg(close)}</b></div>`;
   const w=whoText(close);
   h+=`<div style="text-align:center;margin-top:8px"><span class="who ${w.cls}" style="font-size:13px;font-weight:600;padding:5px 12px;border-radius:99px;display:inline-block">${esc(w.t)}</span></div>`;
@@ -866,20 +866,20 @@ async function buildReportImage(){
   // stat cards
   const PW=periodWords(R.period), CC=carry(R.open), tR=R.rec+CC.recPrev, tP=R.dep+CC.paidPrev;
   let y=290; const cw=(W-P*2-24)/2;
-  rr(c,P,y,cw,200,24,"#e7f6ee"); rr(c,P+cw+24,y,cw,200,24,"#e8efff");
+  rr(c,P,y,cw,200,24,"#e7f6ee"); rr(c,P+cw+24,y,cw,200,24,"#fdecec");
   c.font="700 28px "+F; c.fillStyle="#0f9d58"; c.fillText("Total Received",P+30,y+56);
-  c.fillStyle="#2563eb"; c.fillText("Total Paid",P+cw+54,y+56);
+  c.fillStyle="#dc2626"; c.fillText("Total Paid",P+cw+54,y+56);
   c.font="800 56px "+F; c.fillStyle="#0f9d58"; c.fillText(fit(c,tk(tR),cw-60),P+30,y+128);
-  c.fillStyle="#2563eb"; c.fillText(fit(c,tk(tP),cw-60),P+cw+54,y+128);
+  c.fillStyle="#dc2626"; c.fillText(fit(c,tk(tP),cw-60),P+cw+54,y+128);
   c.font="500 21px "+F; c.fillStyle="#0f9d58"; c.fillText(fit(c,CC.recPrev?tk(R.rec)+" "+PW.this+" + "+tk(CC.recPrev)+" prev.":PW.this,cw-60),P+30,y+170);
-  c.fillStyle="#2563eb"; c.fillText(fit(c,CC.paidPrev?tk(R.dep)+" "+PW.this+" + "+tk(CC.paidPrev)+" prev.":PW.this,cw-60),P+cw+54,y+170);
+  c.fillStyle="#dc2626"; c.fillText(fit(c,CC.paidPrev?tk(R.dep)+" "+PW.this+" + "+tk(CC.paidPrev)+" prev.":PW.this,cw-60),P+cw+54,y+170);
   // summary
   const sign=b=> Math.abs(b)<0.005?"৳0":(b>0?"+":"−")+tk(b), dc=b=>Math.abs(b)<0.005?"#15181e":(b>0?"#0f9d58":"#dc2626");
   const L=[["sec","RECEIVED"]];
-  if(CC.recPrev) L.push(["row",PW.prevBal+" (with you)",tk(CC.recPrev),"#15181e"]);
-  L.push(["row","Received "+PW.this,tk(R.rec),"#15181e"],["tot","Total received",tk(tR),"#0f9d58"],["sec","PAID"]);
-  if(CC.paidPrev) L.push(["row",PW.prevBal+" ("+party()+" owes you)",tk(CC.paidPrev),"#15181e"]);
-  L.push(["row","Paid "+PW.this,tk(R.dep),"#15181e"],["tot","Total paid",tk(tP),"#2563eb"],["bal","= Balance (Paid − Received)",sign(R.close),dc(R.close)],["row","Cash-out charges",tk(R.chg),"#6b7280"],["row","Still expected",tk(R.pend),"#6b7280"]);
+  if(CC.recPrev) L.push(["row",PW.prevBal+" (with you)",tk(CC.recPrev),"#0f9d58"]);
+  L.push(["row","Received "+PW.this,tk(R.rec),"#0f9d58"],["tot","Total received",tk(tR),"#0f9d58"],["sec","PAID"]);
+  if(CC.paidPrev) L.push(["row",PW.prevBal+" ("+party()+" owes you)",tk(CC.paidPrev),"#dc2626"]);
+  L.push(["row","Paid "+PW.this,tk(R.dep),"#dc2626"],["tot","Total paid",tk(tP),"#dc2626"],["bal","= Balance (Paid − Received)",sign(R.close),dc(R.close)],["row","Cash-out charges",tk(R.chg),"#6b7280"],["row","Still expected",tk(R.pend),"#6b7280"]);
   const lh=t=>t==="sec"?50:t==="bal"?72:58;
   const sumH=L.reduce((a,l)=>a+lh(l[0]),0)+40+150;
   y+=230; rr(c,P,y,W-P*2,sumH,24,"#fff");
@@ -909,9 +909,9 @@ async function buildReportImage(){
     const title=isPay?payTitle(t):("Received"+(t.via?" from "+t.via:""));
     const sub=[R.period==="day"?time:fmtD(d,{day:"numeric",month:"short"}), isPay?payDetail(t):[t.method,t.charge>0?"charge "+tk(t.charge):""].filter(Boolean).join(" · ")].filter(Boolean).join(" · ");
     const amt=(isPay?"":"+")+tk(isPay?t.amount:t.net);
-    rr(c,P+32,ey+10,56,56,14,isPay?"#e8efff":"#e7f6ee");
-    c.font="700 24px "+F; c.fillStyle=isPay?"#2563eb":"#0f9d58"; c.textAlign="center"; c.fillText(String(i+1),P+60,ey+47); c.textAlign="left";
-    c.font="700 34px "+F; c.textAlign="right"; c.fillStyle=isPay?"#2563eb":"#0f9d58"; c.fillText(amt,W-P-32,ey+48);
+    rr(c,P+32,ey+10,56,56,14,isPay?"#fdecec":"#e7f6ee");
+    c.font="700 24px "+F; c.fillStyle=isPay?"#dc2626":"#0f9d58"; c.textAlign="center"; c.fillText(String(i+1),P+60,ey+47); c.textAlign="left";
+    c.font="700 34px "+F; c.textAlign="right"; c.fillStyle=isPay?"#dc2626":"#0f9d58"; c.fillText(amt,W-P-32,ey+48);
     const aw=c.measureText(amt).width; c.textAlign="left";
     const tw=W-P*2-140-aw-30;
     c.font="600 28px "+F; c.fillStyle="#15181e"; c.fillText(fit(c,title,tw),P+108,ey+34);
